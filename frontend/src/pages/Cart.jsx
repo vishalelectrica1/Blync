@@ -17,7 +17,7 @@ const Cart = () => {
     if (qty > 0) {
       dispatch(addToCart({ ...item, qty }));
     }
-    const stockRes = await fetch(`/api/products/${item.productId}`);
+    const stockRes = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${item.productId}`);
     const stockData = await stockRes.json();
     if (qty > stockData.stock) {
       alert(`Only ${stockData.stock} items in stock!`);

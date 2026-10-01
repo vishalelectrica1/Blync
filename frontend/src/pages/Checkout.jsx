@@ -73,7 +73,7 @@ const CheckoutForm = ({ address, setAddress }) => {
 
 const saveOrder = async (paymentId, method) => {
   try {
-    const saveOrderRes = await fetch('/api/orders', {
+    const saveOrderRes = await fetch(`${process.env.REACT_APP_API_URL}/api/orders`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -96,12 +96,12 @@ const saveOrder = async (paymentId, method) => {
     // Update all products simultaneously
     await Promise.all(
       cartItems.map(async (item) => {
-        const preQuantityRes = await fetch(`/api/products/${item.productId}`);
+        const preQuantityRes = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${item.productId}`);
         const product = await preQuantityRes.json();
 
         const newQuantity = product.stock - item.qty;
 
-        const updateRes = await fetch(`/api/products/${item.productId}`, {
+        const updateRes = await fetch(`${process.env.REACT_APP_API_URL}/api/products/${item.productId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -177,7 +177,7 @@ const Checkout = () => {
 
   useEffect(() => {
     // 1. Fetch Stripe Publishable Key
-    fetch('/api/payment/config')
+    fetch(`${process.env.REACT_APP_API_URL}/api/payment/config`)
       .then(res => res.json())
       .then(data => {
         if (data.publishableKey) {
@@ -188,7 +188,7 @@ const Checkout = () => {
 
     // 2. Fetch Payment Intent Client Secret
     if (totalPrice > 0) {
-      fetch('/api/payment/create-payment-intent', {
+      fetch(`${process.env.REACT_APP_API_URL}/api/payment/create-payment-intent`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: totalPrice })
