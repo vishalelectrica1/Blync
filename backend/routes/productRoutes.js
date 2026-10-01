@@ -8,6 +8,6 @@ const upload = multer({ dest: 'uploads/' });
 const router = express.Router();
 
 router.route('/').get(getProducts).post(protect, admin, upload.single('image'), createProduct);
-router.route('/:id').get(getProductById).put(protect, admin, upload.single('image'), updateProduct).delete(protect, admin, deleteProduct);
+router.route('/:id').get(getProductById).put(protect, upload.single('image'), updateProduct).delete(protect, admin, deleteProduct);
 
 module.exports = router;

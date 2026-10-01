@@ -14,7 +14,7 @@ const CheckoutForm = ({ address, setAddress }) => {
   const cartItems = useSelector((state) => state.cart.cartItems);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+  console.log(cartItems);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Online');
@@ -71,37 +71,62 @@ const CheckoutForm = ({ address, setAddress }) => {
     }
   };
 
-  const saveOrder = async (paymentId, method) => {
-    try {
-      const saveOrderRes = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`
-        },
-        body: JSON.stringify({
-          items: cartItems,
-          totalAmount: totalPrice,
-          address,
-          paymentId: paymentId,
-          paymentMethod: method
-        })
-      });
+const saveOrder = async (paymentId, method) => {
+  try {
+    const saveOrderRes = await fetch('/api/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: JSON.stringify({
+        items: cartItems,
+        totalAmount: totalPrice,
+        address,
+        paymentId,
+        paymentMethod: method,
+      }),
+    });
 
-      if (saveOrderRes.ok) {
-        dispatch(clearCart());
-        navigate('/ordersuccess');
-      } else {
-        setErrorMessage('Failed to save order.');
-        setIsProcessing(false);
-      }
-    } catch (err) {
-      console.error(err);
-      setErrorMessage('Server error while saving order.');
-      setIsProcessing(false);
+    if (!saveOrderRes.ok) {
+      const err = await saveOrderRes.json();
+      throw new Error(err.message || "Failed to save order.");
     }
-  };
 
+    // Update all products simultaneously
+    await Promise.all(
+      cartItems.map(async (item) => {
+        const preQuantityRes = await fetch(`/api/products/${item.productId}`);
+        const product = await preQuantityRes.json();
+
+        const newQuantity = product.stock - item.qty;
+
+        const updateRes = await fetch(`/api/products/${item.productId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+          body: JSON.stringify({
+            stock: newQuantity,
+          }),
+        });
+
+        if (!updateRes.ok) {
+          throw new Error(`Failed to update stock for ${item.productId}`);
+        }
+      })
+    );
+
+    dispatch(clearCart());
+    navigate("/ordersuccess");
+
+  } catch (err) {
+    console.error(err);
+    setErrorMessage(err.message);
+    setIsProcessing(false);
+  }
+};
   return (
     <form onSubmit={handleSubmit} className="shipping-form">
       <h3>Shipping Address</h3>

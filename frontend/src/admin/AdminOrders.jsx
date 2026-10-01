@@ -17,53 +17,23 @@ const AdminOrders = () => {
   }, [user]);
 
   const updateStatus = async (id, status) => {
-    const res = await fetch(`/api/orders/${id}/status`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${user.token}` },
-      body: JSON.stringify({ status })
-    });
-    if (res.ok) {
-      setOrders(orders.map(order => order._id === id ? { ...order, status } : order));
-     if (status === 'Delivered') {
-  const deliveredOrder = orders.find(
-    order => order._id === id
-  );
+  const res = await fetch(`/api/orders/${id}/status`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${user.token}`,
+    },
+    body: JSON.stringify({ status }),
+  });
 
-
-  const productId = deliveredOrder.items[0].productId;
-
-  const productRes = await fetch(
-    `/api/products/${productId}`,
-    {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${user.token}`
-      }
-    }
-  );
-
-  const productData = await productRes.json();
-
-  if (productData) {
-    const updatedStock =
-      productData.stock -
-      deliveredOrder.items[0].qty;
-
-    await fetch(`/api/products/${productId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${user.token}`
-      },
-      body: JSON.stringify({
-        stock: updatedStock
-      })
-    });
+  if (res.ok) {
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order._id === id ? { ...order, status } : order
+      )
+    );
   }
-}
-  }
-    }
-  ;
+};
 
   return (
     <div style={containerStyle}>

@@ -28,7 +28,7 @@ const registerUser = async (req, res) => {
 
       await sendEmail({
         email: user.email,
-        subject: 'Welcome to Blync - Your OTP',
+        subject: 'Welcome to Blync!',
         message
       });
 
@@ -64,7 +64,7 @@ const loginUser = async (req, res) => {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message});
   }
 };
 
